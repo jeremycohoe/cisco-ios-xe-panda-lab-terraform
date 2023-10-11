@@ -43,12 +43,34 @@ terraform {
 
 provider "iosxe" {
   username = "admin"
-  password = "Cisco123"
-  url      = "https://switch"
+  password = "XXXXXXXX"
+  url      = "https://your-switch-hostname-or-ip"
 }
+
+##########################################
+# Should not need to change below here ! #
+##########################################
+variable source_address {
+    type = string
+    default = "1.1.1.1"
+    description = "Source address" 
+}
+
+variable receiver_ip {
+    type = string
+    default = "1.1.1.1"
+    description = "Receiver IP" 
+}
+
+variable receiver_port  {
+    type = string
+    default = "57500"
+    description = "Port to send data to" 
+}
+
 ```
 
-# Review var.tfvars
+# Review terraform.tfvars
 
 This file is where we set the variables for the telemetry subscriptions.
 
@@ -62,42 +84,35 @@ example_periodic = "3000"
 cpu_periodic = "3000"
 ```
 
-# Review variables.tf
 
-We could name the variables better here but we didn't yet so sorry. This file shows the variable definitions and the default vaules.
 
-This file also has the list of variables that are looped through as part of the additional .tf configuration files for CPU and additonally defined Xpaths.
+# Review cpu.tf
+
+The CPU.tf has the loop which is used to loop through the Subscription ID Numbers and Xpaths from the previous configuraiton file. It also has some values defined for the encoding, stream, and update interval defaults.
 
 
 ```
-variable source_address {
-    type = string
-    default = "1.1.1.1"
-    description = "Source address"
-}
-
-variable receiver_ip {
-    type = string
-    default = "1.1.1.1"
-    description = "Receiver IP"
-}
-
-variable receiver_port  {
-    type = string
-    default = "57500"
-    description = "Port to send data to"
-}
-
-variable example_periodic {
-    type = string
-    default = "6000"
-    description = "Long update interval"
+resource "iosxe_mdt_subscription" "cpu_subs" {
+  for_each               = var.cpu_subscriptions
+  subscription_id        = each.key
+  stream                 = "yang-push"
+  encoding               = "encode-kvgpb"
+  update_policy_periodic = var.cpu_periodic
+  source_address         = var.source_address
+  filter_xpath           = each.value.xpath
+  receivers = [
+    {
+      address  = var.receiver_ip
+      port     = var.receiver_port
+      protocol = "grpc-tcp"
+    }
+  ]
 }
 
 variable cpu_periodic {
     type = string
     default = "100"
-    description = "Short update interval"
+    description = "Short update interval" 
 }
 
 #CPU.tf
@@ -115,6 +130,35 @@ variable "cpu_subscriptions" {
   }
 }
 
+```
+# Review xpaths.tf
+
+Here are some additionally defined Xpaths for things like the envrionment-sensor and the Interfaces Operational data.
+
+```
+resource "iosxe_mdt_subscription" "example" {
+  for_each               = var.subscriptions
+  subscription_id        = each.key
+  stream                 = "yang-push"
+  encoding               = "encode-kvgpb"
+  update_policy_periodic = var.example_periodic
+  source_address         = var.source_address
+  filter_xpath           = each.value.xpath
+  receivers = [
+    {
+      address  = var.receiver_ip
+      port     = var.receiver_port
+      protocol = "grpc-tcp"
+    }
+  ]
+ }
+
+variable example_periodic {
+    type = string
+    default = "6000"
+    description = "Long update interval" 
+}
+
 #XPATH.tf
 variable "subscriptions" {
   default = {
@@ -128,52 +172,6 @@ variable "subscriptions" {
   }
 }
 
-```
-
-# Review cpu.tf
-
-The CPU.tf has the loop which is used to loop through the Subscription ID Numbers and Xpaths from the previous configuraiton file. It also has some values defined for the encoding, stream, and update interval defaults.
-
-
-```
-resource "iosxe_mdt_subscription" "cpu_subs" {
-  for_each               = var.cpu_subscriptions
-  subscription_id        = each.key
-  stream                 = "yang-push"
-  encoding               = "encode-kvgpb"
-  update_policy_periodic = var.cpu_periodic
-#  source_address         = var.source_address
-  filter_xpath           = each.value.xpath
-  receivers = [
-    {
-      address  = var.receiver_ip
-      port     = var.receiver_port
-      protocol = "grpc-tcp"
-    }
-  ]
-}
-```
-# Review xpaths.tf
-
-Here are some additionally defined Xpaths for things like the envrionment-sensor and the Interfaces Operational data.
-
-```
-resource "iosxe_mdt_subscription" "example" {
-  for_each               = var.subscriptions
-  subscription_id        = each.key
-  stream                 = "yang-push"
-  encoding               = "encode-kvgpb"
-  update_policy_periodic = var.example_periodic
-#  source_address         = var.source_address
-  filter_xpath           = each.value.xpath
-  receivers = [
-    {
-      address  = var.receiver_ip
-      port     = var.receiver_port
-      protocol = "grpc-tcp"
-    }
-  ]
- }
 ```
  
 ### Great job at reviewing the config file we really hope it works
