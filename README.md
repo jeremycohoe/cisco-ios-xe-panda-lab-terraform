@@ -74,23 +74,26 @@ variable source_address {
     type = string
     default = "1.1.1.1"
     description = "Source address"
-terraform {
 }
+
 variable receiver_ip {
     type = string
     default = "1.1.1.1"
     description = "Receiver IP"
 }
+
 variable receiver_port  {
     type = string
     default = "57500"
     description = "Port to send data to"
 }
+
 variable example_periodic {
     type = string
     default = "6000"
     description = "Long update interval"
 }
+
 variable cpu_periodic {
     type = string
     default = "100"
@@ -123,6 +126,7 @@ variable "subscriptions" {
 
     }
   }
+}
 
 ```
 
