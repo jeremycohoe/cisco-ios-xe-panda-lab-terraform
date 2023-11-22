@@ -1,5 +1,5 @@
-source_address = "10.85.134.65"
-receiver_ip = "10.85.134.66"
+source_address = "198.18.1.21"
+receiver_ip = "198.18.133.252"
 receiver_port = "57500"
 example_periodic = "6000"
 cpu_periodic = "2000"

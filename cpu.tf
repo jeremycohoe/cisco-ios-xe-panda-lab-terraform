@@ -3,6 +3,7 @@ resource "iosxe_mdt_subscription" "cpu_subs" {
   subscription_id        = each.key
   stream                 = "yang-push"
   encoding               = "encode-kvgpb"
+  source_vrf             = "Mgmt-vrf"
   update_policy_periodic = var.cpu_periodic
   source_address         = var.source_address
   filter_xpath           = each.value.xpath

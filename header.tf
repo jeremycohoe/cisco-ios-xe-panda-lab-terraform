@@ -2,15 +2,15 @@ terraform {
   required_providers {
     iosxe = {
       source  = "CiscoDevNet/iosxe"
-      version = ">= 0.3.3"
+      version = ">= 0.5.1"
     }
   }
 }
 
 provider "iosxe" {
-  username = "admin"
-  password = "XXXXXXXXX"
-  url      = "https://your-switch-hostname-or-ip"
+  username = "developer"
+  password = "C1sco12345"
+  url      = "https://198.18.1.21"
 }
 
 variable source_address {
